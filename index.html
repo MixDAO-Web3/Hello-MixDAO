@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MixDAO</title>
+    <script src="https://cdn.jsdelivr.net/npm/@idealight-labs/anyweb-js-sdk@latest/dist/anyweb-js-sdk.umd.min.js"></script>
+
+</head>
+
+<body>
+    <button id="login">登录</button>
+    <button id="myNFTs">我的NFTs</button>
+    <div id="nfts"></div>
+    <script type="text/javascript">
+        const testUrl = 'https://api-testnet.confluxscan.net';
+
+        const provider = new window.AnyWeb.Provider({
+            logger: console,
+            appId: '5a125145-87fc-4634-ba4e-c82dcff9cde8'
+        })
+
+        document.querySelector('#login').addEventListener('click', e => {
+            e.preventDefault();
+            login();
+        })
+
+        document.querySelector('#myNFTs').addEventListener('click', async e => {
+            e.preventDefault();
+            window.myNFTs = await getNFTs();
+            let html = '';
+            for (const nft of window.myNFTs) {
+                html += `<img src="${nft.image}"/>`;
+            };
+            document.querySelector('#nfts').innerHTML = html;
+        })
+
+        function login() {
+            provider.request({
+                method: 'cfx_accounts',
+                params: [{
+                    availableNetwork: [1, 1029],
+                    scopes: ['baseInfo', 'identity'],
+                }],
+            }).then((data) => {
+                const {
+                    chainId,
+                    networkId,
+                    address,
+                    code
+                } = data
+                console.log(
+                    'DApp 获取到的授权结果',
+                    chainId,
+                    networkId,
+                    address,
+                    code
+                );
+                alert('ok')
+                window.address = address;
+            }).catch((e) => {
+                console.error('调用失败', e)
+            })
+        }
+
+        async function getNFTs() {
+            let myNFTs = {}
+            let res = await fetch(`${testUrl}/account/tokens?account=${window.address[0]}`).then(res => res.json());
+            // console.log(res)
+            if (res.message === 'OK' && res.data) {
+                for (const d of res.data.list) {
+                    if (d.type === 'CRC1155') {
+                        myNFTs[d.contract] = await fetch(`${testUrl}/nft/tokens?contract=${d.contract}&owner=${window.address[0]}&skip=0&withBrief=true&withMetadata=true&limit=12`).then(res => res.json());
+                        if (myNFTs[d.contract].message === 'OK' && myNFTs[d.contract].data) {
+                            myNFTs[d.contract] = Array.from(myNFTs[d.contract].data.list, u => {
+                                u = {
+                                    contract: u.contract,
+                                    ...(u.rawData.metadata)
+                                }
+                                return u;
+                            })
+                        }
+                    }
+                };
+            };
+
+            let result = [];
+            for (const key in myNFTs) {
+                for (const nft of myNFTs[key]) {
+                    result.push(nft)
+                }
+            }
+
+            return result;
+        }
+    </script>
+</body>
+
+</html>
