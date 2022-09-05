@@ -7,35 +7,273 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MixDAO</title>
     <script src="https://cdn.jsdelivr.net/npm/@idealight-labs/anyweb-js-sdk@latest/dist/anyweb-js-sdk.umd.min.js"></script>
-
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        
+        button {
+            background-color: black;
+            color: white;
+            height: 56px;
+            border-radius: 100%;
+            font-size: 14px;
+            font-weight: 300;
+            width: 56px;
+            outline: none;
+            border: none;
+        }
+        
+        .disabled {
+            background-color: #cfcfcf;
+            color: #545454;
+        }
+        
+        #login {
+            position: fixed;
+            right: 12px;
+            top: 36px;
+        }
+        
+        #status {
+            display: flex;
+            justify-content: end;
+            height: 16px;
+            background-color: #e3e3e3;
+            font-size: 12px;
+            color: #525252;
+            padding: 4px 12px;
+        }
+        
+        label {
+            font-size: 12px;
+            font-weight: 300;
+            margin: 12px 0;
+        }
+        
+        #address {
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+        }
+        
+        #address-select {
+            padding: 8px;
+            width: 50%;
+            outline: none;
+        }
+        
+        #status div {
+            margin-right: 4px;
+        }
+        
+        #nfts {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .nft-card-mini {
+            display: flex;
+            flex-direction: column;
+            /* width: 100%; */
+            /* background-color: #eee; */
+            margin: 16px 8px 0 8px;
+            padding: 4px;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        
+        .nft-card-mini .poster {
+            width: 100px;
+            height: 100px;
+        }
+        
+        .nft-card-mini .poster img {
+            width: 100px;
+            height: 100px;
+        }
+        
+        .pologen {
+            width: 100px;
+            transform: rotate(45deg);
+            overflow: hidden;
+        }
+        
+        .pologen img {
+            max-width: 100%;
+            transform: rotate(-45deg);
+        }
+        
+        .nft-card-mini .count {
+            font-size: 12px;
+            font-weight: 300;
+            position: relative;
+            background-color: black;
+            color: white;
+            margin-top: -18px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            transform: scale(0.8);
+        }
+        
+        .nft-card .poster {
+            width: 200px;
+            height: 200px;
+        }
+        
+        .nft-card .text {
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+        }
+        
+        .nft-card .name {
+            font-size: 18px;
+            font-weight: 800;
+        }
+        
+        .nft-card .description {
+            font-size: 12px;
+            font-weight: 300;
+            margin: 0;
+            margin-bottom: 8px;
+        }
+        
+        .nft-card .contract {
+            font-size: 12px;
+            text-decoration: none;
+            color: blue;
+            margin: 12px 0;
+        }
+        
+        .nft-card a {
+            text-decoration: none;
+            font-size: 12px;
+            padding: 0;
+            margin: 0;
+            display: flex;
+        }
+        
+        .nft-card .info-name {
+            margin: 0;
+            display: block;
+            background-color: floralwhite;
+            padding: 4px 6px;
+        }
+        
+        .nft-card .more div {
+            display: flex;
+            margin: 0px 2px;
+            font-size: 12px;
+            align-items: center;
+            font-weight: 300;
+        }
+        
+        .nft-card .more div a {
+            margin: 2px;
+        }
+        
+        #nft-detail {
+            display: none;
+            position: fixed;
+            top: 0;
+            z-index: 999;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #eee;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #close {
+            position: fixed;
+            right: 24px;
+            top: 24px
+        }
+    </style>
 </head>
 
 <body>
-    <button id="login">登录</button>
-    <button id="myNFTs">我的NFTs</button>
+    <div id="status">
+        <div id="version">-</div>
+        <div id="network" style="display: none;"></div>
+    </div>
+
+    <button id="login" disabled class="disabled">钱包</button>
+
+
+    <div id="address">
+        <label for="address-select">选择你的钱包地址:</label>
+        <select name="address" id="address-select"> </select>
+    </div>
+
+
+    <!-- <button id="myNFTs">我的NFTs</button> -->
     <div id="nfts"></div>
+    <div id="nft-detail">
+        <button id="close" onclick="closeNFT()">关闭</button>
+        <div class="content"></div>
+    </div>
     <script type="text/javascript">
-        const testUrl = 'https://api-testnet.confluxscan.net';
+        const contracts = {
+            "MIXDAO": "cfxtest:achrvxc7x4fm8dzujm07rebr3hra7ps5ce3y2zmhr9"
+        }
 
         const provider = new window.AnyWeb.Provider({
             logger: console,
             appId: '5a125145-87fc-4634-ba4e-c82dcff9cde8'
         })
 
-        document.querySelector('#login').addEventListener('click', e => {
+        document.querySelector('#login').addEventListener('click', async e => {
             e.preventDefault();
+            if (await provider.request({
+                    method: 'anyweb_loginstate'
+                })) {
+                await provider.request({
+                    method: 'anyweb_revoke'
+                })
+            }
             login();
+
         })
 
-        document.querySelector('#myNFTs').addEventListener('click', async e => {
+
+
+        document.querySelector('#address-select').addEventListener('change', e => {
             e.preventDefault();
+            createMyNFTs()
+        })
+
+        async function createMyNFTs() {
             window.myNFTs = await getNFTs();
             let html = '';
             for (const nft of window.myNFTs) {
-                html += `<img src="${nft.image}"/>`;
+                html += createNFTCard(nft);
             };
+            // document.querySelector('#nfts').innerHTML = ''
             document.querySelector('#nfts').innerHTML = html;
-        })
+
+        }
+
+        provider.on('ready', init)
+
+        function init() {
+            document.querySelector('#login').className = ''
+            document.querySelector('#login').removeAttribute('disabled')
+            getVersion();
+
+        }
+
+        function getVersion() {
+            provider.request({
+                method: 'anyweb_version'
+            }).then((version) => {
+                document.querySelector('#version').innerHTML = version
+            })
+        }
 
         function login() {
             provider.request({
@@ -53,48 +291,337 @@
                 } = data
                 console.log(
                     'DApp 获取到的授权结果',
-                    chainId,
-                    networkId,
-                    address,
-                    code
+                    data
                 );
-                alert('ok')
+                provider.networkId = networkId;
+                if (provider.networkId === 1) {
+                    document.querySelector('#network').style.display = 'flex'
+                    document.querySelector('#network').innerText = '测试网'
+                }
+                // alert('ok')
                 window.address = address;
-            }).catch((e) => {
+                let html = ''
+                for (const a of window.address) {
+                    html += `<option value="${a}" >${a}</option>`
+                }
+                document.querySelector('#address-select').innerHTML = html;
+
+                createMyNFTs();
+
+            }).catch(async(e) => {
                 console.error('调用失败', e)
+                if (await provider.request({
+                        method: 'anyweb_loginstate'
+                    })) {
+                    reset();
+                }
             })
         }
 
+        function reset() {
+            document.querySelector('#address-select').innerHTML = '';
+            document.querySelector('#nfts').innerHTML = '';
+            document.querySelector('#network').style.display = 'none'
+        }
+
+        function getContract() {
+            let contract, ks = queryParse(window.location.href);
+            for (const key in ks) {
+                if (key === 'from') contract = contracts[ks[key].toUpperCase()]
+            }
+            return contract
+        }
+
         async function getNFTs() {
-            let myNFTs = {}
-            let res = await fetch(`${testUrl}/account/tokens?account=${window.address[0]}`).then(res => res.json());
+            let myNFTs = {};
+            let a = document.querySelector('#address-select').value;
+            // let res = await fetch(`${getChainUrl()}/account/tokens?account=${a}`).then(res => res.json());
             // console.log(res)
-            if (res.message === 'OK' && res.data) {
-                for (const d of res.data.list) {
-                    if (d.type === 'CRC1155') {
-                        myNFTs[d.contract] = await fetch(`${testUrl}/nft/tokens?contract=${d.contract}&owner=${window.address[0]}&skip=0&withBrief=true&withMetadata=true&limit=12`).then(res => res.json());
-                        if (myNFTs[d.contract].message === 'OK' && myNFTs[d.contract].data) {
-                            myNFTs[d.contract] = Array.from(myNFTs[d.contract].data.list, u => {
-                                u = {
-                                    contract: u.contract,
-                                    ...(u.rawData.metadata)
-                                }
-                                return u;
-                            })
+            let contract = getContract()
+                // if (res.message === 'OK' && res.data) {
+            if (true) {
+                // for (const d of res.data.list) {
+                // if (d.type === 'CRC1155') {
+                myNFTs[contract] = await fetch(`${getChainUrl()}/nft/tokens?contract=${contract}&owner=${a}&skip=0&withBrief=true&withMetadata=true&limit=12`).then(res => res.json());
+                if (myNFTs[contract].code === 0 && myNFTs[contract].data) {
+                    myNFTs[contract] = Array.from(myNFTs[contract].data.list, u => {
+                        u = {
+                            contract: u.contract,
+                            ...(u.rawData.metadata)
                         }
-                    }
-                };
+                        return u;
+                    });
+                    // 统计相同的nft，累积+1
+                    let nfts = {};
+                    for (const nft of myNFTs[contract]) {
+                        if (!nfts[nft.name]) nfts[nft.name] = {...nft,
+                            count: 0,
+                            achievements: []
+                        };
+                        nfts[nft.name].count++;
+                        nfts[nft.name].achievements.push(nft.achievement)
+                    };
+                    myNFTs[contract] = nfts;
+                } else {
+                    myNFTs[contract] = null;
+                }
+                // }
+                // };
             };
 
             let result = [];
+            console.log(myNFTs)
             for (const key in myNFTs) {
-                for (const nft of myNFTs[key]) {
-                    result.push(nft)
+                if (myNFTs[key]) {
+                    for (const name in myNFTs[key]) {
+                        result.push(myNFTs[key][name])
+                    }
+
+                    // for (const nft of myNFTs[key]) {
+                    //     result.push(nft)
+                    // }
                 }
+
             }
 
             return result;
         }
+
+        function getChainUrl() {
+            return `https://api${provider.networkId === 1029?'':'-testnet'}.confluxscan.net`;
+        }
+
+        function getChainContractUrl(contract = null) {
+            if (contract) return `https://${provider.networkId === 1029?'':'testnet。'}confluxscan.net/address/${contract}`
+        }
+
+
+        function createNFTCard(json = {}) {
+            /*
+                        创作者 creators  – 数字内容创作者 
+                        赞助方 sponsors – 为提案提供资金支持
+                        提案 proposal – 徽章对应的事件分类（详见分类）  
+                        技能 skills  – 徽章的种类，代表用户的技能积累
+                        认证 certifications – DAO组织的信用背书， MixDAO 提供认证
+                        技术 technicalSupports – 提供技术支持的相关方
+                        源文件 fileData – 源文件，尺寸无限制，推荐使用ipfs链接
+                        文件类型 filetype – 数字内容的文件类型：png、gif、svg、mp4、js等
+                        用户成就 achievement – 描述用户的成就，可以很具体
+
+                        *封面 image – 预览图，尺寸建议320x320，推荐使用ipfs链接
+                        *合约地址 contract
+                        *描述 description
+                        *名称 name
+                        *序号 tokenId
+            */
+            const nft = {
+                creators: [],
+                sponsors: [],
+                proposal: {},
+                skills: [],
+                certifications: [],
+                technicalSupports: [],
+                image: '',
+                fileData: '',
+                filetype: '',
+                achievements: [], // 从链上查询到数据后，合并处理了
+                contract: '',
+                description: '',
+                name: '',
+                tokenId: '',
+                ...json
+            };
+
+            // const nft = {
+            //     creators: [],
+            //     sponsors: [],
+            //     proposal: {},
+            //     skills: [],
+            //     certifications: [],
+            //     technicalSupports: [],
+            //     image: '',
+            //     fileData: '',
+            //     filetype: '',
+            //     contract: '',
+            //     description: '',
+            //     name: '',
+            //     tokenId: '',
+
+            //     ... {
+            //         "creators": [{
+            //             "name": "shadow",
+            //             "url": "https://github.com/shadowcz007"
+            //         }],
+            //         "sponsors": [{
+            //             "name": "MixDAO",
+            //             "url": "https://github.com/MixDAO-Web3"
+            //         }],
+            //         "proposal": {
+            //             "text": "用徽章帮助每个人记录成长和积累声誉",
+            //             "name": "MixDAO徽章体系设计"
+            //         },
+            //         "skills": [{
+            //             "name": "NFT"
+            //         }, {
+            //             "name": "DAO"
+            //         }],
+            //         "certifications": [{
+            //             "name": "MixDAO",
+            //             "url": "https://github.com/MixDAO-Web3"
+            //         }],
+            //         "technicalSupports": [{
+            //             "name": "bigan",
+            //             "url": "http://open.flyray.me"
+            //         }, {
+            //             "name": "anyweb",
+            //             "url": "https://anyweb.cc"
+            //         }, {
+            //             "name": "Stable diffusion",
+            //             "url": "https://github.com/CompVis/stable-diffusion"
+            //         }],
+
+            //         "fileData": "https://ipfs.flyray.me/ipfs/Qmc26zqHibfBrmKw7hqC7XYjqmuGJUZpatzFZrXVegMqfB",
+            //         "filetype": "png",
+
+
+            //         "name": "MixDAO徽章",
+            //         "description": "基础款，用于奖励对MixDAO做出贡献的用户",
+            //         "image": "https://ipfs.flyray.me/ipfs/Qmc26zqHibfBrmKw7hqC7XYjqmuGJUZpatzFZrXVegMqfB"
+            //     }
+            // }
+
+
+            return createNFTCardMini(nft)
+        };
+
+        function openNFT(nft) {
+            let d = document.querySelector('#nft-detail .content');
+            d.innerHTML = createNFTCardDetail(nft);
+            d.parentElement.style.display = 'flex'
+        }
+
+        function closeNFT() {
+            document.querySelector('#nft-detail').style.display = 'none'
+        }
+
+        function createNFTCardDetail(nft) {
+            return `<div class="nft-card">
+                    <img class="poster" src="${nft.image}" onerror="imgLoadError(this)"/>
+                    <div class="text" >
+                        <p class="name" >${nft.name}</p>
+                        <p class="description" >${nft.description}</p>
+                        <div class="count" >${nft.count}</div>
+                        <div class="more" >
+                            <div class="creators" >创作者 ${Array.from(nft.creators,n=>createInfo(n,'creators')).join("")} </div>
+                            <div class="sponsors" >赞助 ${Array.from(nft.sponsors,n=>createInfo(n,'sponsors')).join("")}</div>
+                            <div class="skills" >技能 ${Array.from(nft.skills,n=>createInfo(n,'skills')).join("")}</div>
+                            <div class="certifications" >认证 ${Array.from(nft.certifications,n=>createInfo(n,'certifications')).join("")}</div>
+                            <div class="technicalSupports" >技术支持 ${Array.from(nft.technicalSupports,n=>createInfo(n,'technicalSupports')).join("")}</div>
+                            <a class="contract" href='${getChainContractUrl(nft.contract)}' target="_blank">合约地址</a>
+                        </div>
+                    </div>
+                    
+                    
+                    </div>`
+        }
+
+        function createNFTCardMini(nft) {
+            return `<div class="nft-card-mini" onclick='openNFT(${JSON.stringify(nft)})'>
+                        <div class="poster pologen">
+                            <img src="${nft.image}" onerror="imgLoadError(this)"/> </div>
+                        <div class="count" >${nft.count}</div>
+                    </div>
+                    `
+        }
+
+        function imgLoadError(e) {
+            e.onerror = null;
+            e.src = createImagePlaceHolder(300, 300).src
+        }
+
+        //  creators  sponsors skills certifications technicalSupports
+        function createInfo(json = {
+            name: '',
+            imgurl: '',
+            url: ''
+        }, className = "default") {
+            return `<a ${json.url?`href="${json.url}"`:""}>
+                    ${json.imgurl?`<img class="info-imgurl" src="${json.imgurl}"/>`:""}
+                    <p class="info-name">${json.name}</p>
+                   </a>`
+        }
+
+        function createCanvas(w, h) {
+            let canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            return canvas
+        }
+
+        /* 
+    Based on https://generativeartistry.com/tutorials/piet-mondrian/
+  */
+
+        function createImagePlaceHolder(width = 1184,
+            height = 506) {
+            var colors = ['000', 'fff'],
+                canvas = createCanvas(width, height),
+                ctx = canvas.getContext('2d');
+
+            ctx.lineWidth = Math.round(Math.random() * 4);
+            ctx.fillStyle = `#${colors[0]}`;
+            ctx.strokeStyle = `#${colors[1]}`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.lineCap = 'round';
+
+            var step = 15 + Math.round(Math.random() * 10);
+            var aThirdOfHeight = height / 3;
+
+            function draw(x, y, width, height, positions) {
+                ctx.save();
+                ctx.translate(x + width / 2, y + height / 2)
+                ctx.rotate(Math.random() * 5);
+                ctx.translate(-width / 2, -height / 2)
+
+                for (var i = 0; i <= positions.length; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(positions[i] * width, 0);
+                    ctx.lineTo(positions[i] * width, height);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+
+            for (var y = step; y < width - step; y += step) {
+                for (var x = step; x < width - step; x += step) {
+                    if (y < aThirdOfHeight) {
+                        draw(x, y, step, step, [0.5]);
+                    } else if (y < aThirdOfHeight * 2) {
+                        draw(x, y, step, step, [0.2, 0.8]);
+                    } else {
+                        draw(x, y, step, step, [0.1, 0.5, 0.9]);
+                    }
+                }
+            }
+            let img = new Image();
+            img.src = canvas.toDataURL()
+            return img
+        };
+        function queryParse(url) {
+                var paramObj = {};
+                if(url.indexOf('?') > -1) {
+                    var _url = url.split('?')[1].split('#')[0];
+                    var strArr = _url.split('&');
+                    strArr.forEach(ele => {
+                        var key = ele.split('=')[0];
+                        var val = ele.split('=')[1];
+                        paramObj[key] = val;
+                    });
+                    
+                }
+                return paramObj;
+            }
     </script>
 </body>
 
