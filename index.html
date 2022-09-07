@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MixDAO</title>
     <script src="https://cdn.jsdelivr.net/npm/@idealight-labs/anyweb-js-sdk@latest/dist/anyweb-js-sdk.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wavesurfer.js"></script>
     <style>
         body {
             margin: 0;
@@ -32,9 +33,10 @@
         }
         
         #login {
-            position: fixed;
-            right: 12px;
-            top: 36px;
+            margin-bottom: 24px;
+            width: 88px;
+            height: 44px;
+            border-radius: 6px;
         }
         
         #status {
@@ -54,19 +56,55 @@
         }
         
         #address {
+            width: 100%;
+            height: 100vh;
             display: flex;
             flex-direction: column;
+            justify-content: start;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            background: gray;
             padding: 12px;
+            padding-top: 128px;
         }
         
         #address-select {
             padding: 8px;
-            width: 50%;
+            width: 80%;
             outline: none;
         }
         
         #status div {
             margin-right: 4px;
+        }
+        
+        h4 {
+            padding: 0 24px;
+            margin: 0;
+            margin-top: 12px;
+            font-size: 18px;
+            font-weight: 300;
+        }
+        
+        .nft-pass-carrd {
+            display: flex;
+            flex-direction: column;
+            align-items: end;
+        }
+        
+        .nft-pass-card .content {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 1em 0;
+        }
+        
+        .nft-pass-card img {
+            width: 90%;
         }
         
         #nfts {
@@ -193,34 +231,67 @@
             right: 24px;
             top: 24px
         }
+        
+        #lab {
+            width: 100%;
+            background-color: currentColor;
+        }
+        
+        #lab h4 {
+            color: white;
+            position: absolute;
+            margin-top: 88px;
+        }
     </style>
 </head>
 
 <body>
+    <div>
+
+    </div>
     <div id="status">
         <div id="version">-</div>
         <div id="network" style="display: none;"></div>
     </div>
 
-    <button id="login" disabled class="disabled">钱包</button>
-
-
     <div id="address">
+        <button id="login" disabled class="disabled">打开钱包</button>
         <label for="address-select">选择你的钱包地址:</label>
         <select name="address" id="address-select"> </select>
     </div>
 
-
+    <div id="lab">
+        <h4>LAB # AI音乐生成-可视化</h4>
+    </div>
+    <h4>通行证</h4>
+    <div id="nft-pass"></div>
     <!-- <button id="myNFTs">我的NFTs</button> -->
+    <h4>徽章</h4>
     <div id="nfts"></div>
     <div id="nft-detail">
         <button id="close" onclick="closeNFT()">关闭</button>
         <div class="content"></div>
     </div>
     <script type="text/javascript">
-        const contracts = {
-            "MIXDAO": "cfxtest:achrvxc7x4fm8dzujm07rebr3hra7ps5ce3y2zmhr9"
+        function lab() {
+            let wavesurfer = WaveSurfer.create({
+                container: document.querySelector('#lab'),
+                barWidth: 2,
+                barHeight: 1, // the height of the wave
+                barGap: null, // the optional spacing between bars of the wave, if not provided will be calculated in legacy format
+                waveColor: 'violet',
+                progressColor: 'purple'
+            });
+            wavesurfer.load('assets/gamesettingcyberpunk257f7e65f6034bc9a2f35f4c5a92d000.mp3');
+            wavesurfer.on('ready', function() {
+                wavesurfer.play();
+            });
         }
+        const contracts = {
+            "MixDAO徽章": "cfxtest:achrvxc7x4fm8dzujm07rebr3hra7ps5ce3y2zmhr9",
+            "MixDAO通行证": "cfxtest:ace2w11u4g65jajzefbx2hf1yk2nesk8fu6fa4wxzn"
+        };
+
 
         const provider = new window.AnyWeb.Provider({
             logger: console,
@@ -250,11 +321,14 @@
         async function createMyNFTs() {
             window.myNFTs = await getNFTs();
             let html = '';
-            for (const nft of window.myNFTs) {
+            for (const nft of window.myNFTs[1]) {
                 html += createNFTCard(nft);
             };
-            // document.querySelector('#nfts').innerHTML = ''
             document.querySelector('#nfts').innerHTML = html;
+
+
+            document.querySelector('#nft-pass').innerHTML = createNFTPass(window.myNFTs[0]);
+
 
         }
 
@@ -264,7 +338,7 @@
             document.querySelector('#login').className = ''
             document.querySelector('#login').removeAttribute('disabled')
             getVersion();
-
+            lab()
         }
 
         function getVersion() {
@@ -308,6 +382,8 @@
 
                 createMyNFTs();
 
+                document.querySelector('#address').style.display = 'none'
+
             }).catch(async(e) => {
                 console.error('调用失败', e)
                 if (await provider.request({
@@ -324,24 +400,25 @@
             document.querySelector('#network').style.display = 'none'
         }
 
-        function getContract() {
-            let contract, ks = queryParse(window.location.href);
-            for (const key in ks) {
-                if (key === 'from') contract = contracts[ks[key].toUpperCase()]
-            }
-            return contract
-        }
+        // MixDAO徽章,MixDAO通行证
+        // all
+        // function getContract() {
+        //     let cs = [],
+        //         ks = queryParse(window.location.href);
+        //     for (const key in ks) {
+        //         if (key === 'from') cs.push(contracts[ks[key].toUpperCase()])
+        //         if (key === 'from')
+        //     }
+        //     return cs
+        // }
 
         async function getNFTs() {
             let myNFTs = {};
             let a = document.querySelector('#address-select').value;
             // let res = await fetch(`${getChainUrl()}/account/tokens?account=${a}`).then(res => res.json());
-            // console.log(res)
-            let contract = getContract()
-                // if (res.message === 'OK' && res.data) {
-            if (true) {
-                // for (const d of res.data.list) {
-                // if (d.type === 'CRC1155') {
+            // console.log(res)、
+            for (const key in contracts) {
+                let contract = contracts[key]
                 myNFTs[contract] = await fetch(`${getChainUrl()}/nft/tokens?contract=${contract}&owner=${a}&skip=0&withBrief=true&withMetadata=true&limit=12`).then(res => res.json());
                 if (myNFTs[contract].code === 0 && myNFTs[contract].data) {
                     myNFTs[contract] = Array.from(myNFTs[contract].data.list, u => {
@@ -365,26 +442,23 @@
                 } else {
                     myNFTs[contract] = null;
                 }
-                // }
-                // };
-            };
+            }
 
-            let result = [];
+
+            let nfts = [],
+                nftPass = [];
             console.log(myNFTs)
             for (const key in myNFTs) {
                 if (myNFTs[key]) {
                     for (const name in myNFTs[key]) {
-                        result.push(myNFTs[key][name])
+                        if (key === contracts['MixDAO徽章']) nfts.push(myNFTs[key][name])
+                        if (key === contracts['MixDAO通行证']) nftPass.push(myNFTs[key][name])
                     }
-
-                    // for (const nft of myNFTs[key]) {
-                    //     result.push(nft)
-                    // }
                 }
 
             }
 
-            return result;
+            return [nftPass, nfts];
         }
 
         function getChainUrl() {
@@ -395,6 +469,20 @@
             if (contract) return `https://${provider.networkId === 1029?'':'testnet。'}confluxscan.net/address/${contract}`
         }
 
+        function createNFTPass(list = []) {
+            console.log(list)
+            let html = ''
+            for (const nft of list) {
+                html += `<div class="nft-pass-card" onclick='openNFT(${JSON.stringify(nft)})'>
+                        <div class="content">
+                            <img src="${nft.image}" onerror="imgLoadError(this)"/> </div>
+                            <div class="count" >${nft.count}</div>
+                    </div>
+                    `
+            }
+
+            return html
+        }
 
         function createNFTCard(json = {}) {
             /*
