@@ -13,6 +13,7 @@
             margin: 0;
             padding: 0;
             user-select: none;
+            background-color: black;
         }
         
         button {
@@ -34,8 +35,9 @@
         
         #login {
             margin-bottom: 24px;
-            width: 88px;
-            height: 44px;
+            width: 200px;
+            height: 56px;
+            font-size: 16px;
             border-radius: 6px;
         }
         
@@ -43,7 +45,6 @@
             display: flex;
             justify-content: end;
             height: 16px;
-            background-color: #e3e3e3;
             font-size: 12px;
             color: #525252;
             padding: 4px 12px;
@@ -57,7 +58,7 @@
         
         #address {
             width: 100%;
-            height: 100vh;
+            height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: start;
@@ -66,15 +67,44 @@
             top: 0;
             left: 0;
             z-index: 999;
-            background: gray;
-            padding: 12px;
-            padding-top: 128px;
+            /* background: #1b1b1d; */
+            color: white;
+            /* padding: 12px; */
+            /* padding-top: 148px; */
+            /* background-size: contain; */
+            background-repeat: no-repeat;
+        }
+        
+        #my-address {
+            text-overflow: ellipsis;
+            width: 128px;
+            overflow-x: hidden;
+        }
+        
+        #address img {
+            width: 200px;
+            margin: 72px;
+            max-width: 50%;
+            border-radius: 100%;
+        }
+        
+        #address p {
+            font-size: 12px;
+            color: white;
         }
         
         #address-select {
             padding: 8px;
             width: 80%;
             outline: none;
+        }
+        
+        .diagonal-gradient {
+            background: linear-gradient(to bottom right, rgb(255 255 255), #25141b);
+        }
+        
+        .horizontal-gradient {
+            background: linear-gradient(to right, #0e0f28, #101a16);
         }
         
         #status div {
@@ -84,9 +114,10 @@
         h4 {
             padding: 0 24px;
             margin: 0;
-            margin-top: 12px;
+            margin-top: 28px;
             font-size: 18px;
             font-weight: 300;
+            color: white;
         }
         
         .nft-pass-carrd {
@@ -157,8 +188,8 @@
         }
         
         .nft-card .poster {
-            width: 200px;
-            height: 200px;
+            /* width: 200px; */
+            height: 240px;
         }
         
         .nft-card .text {
@@ -234,34 +265,39 @@
         
         #lab {
             width: 100%;
-            background-color: currentColor;
         }
         
         #lab h4 {
-            color: white;
+            color: #dddddd;
             position: absolute;
-            margin-top: 88px;
+            margin-top: 16px;
+            z-index: 99;
+            font-weight: 800;
         }
     </style>
 </head>
 
-<body>
+<body class="horizontal-gradient ">
     <div>
 
     </div>
     <div id="status">
+        <div>Hello MixDAO</div>
         <div id="version">-</div>
         <div id="network" style="display: none;"></div>
+        <div id="my-address"></div>
     </div>
 
-    <div id="address">
-        <button id="login" disabled class="disabled">打开钱包</button>
-        <label for="address-select">选择你的钱包地址:</label>
-        <select name="address" id="address-select"> </select>
+    <div id="address" class="diagonal-gradient">
+        <img src="assets/logo.jpg" alt="">
+        <button id="login" disabled class="disabled">加载中</button>
+        <label for="address-select" style="display:none">选择你的钱包地址:</label>
+        <select name="address" id="address-select" style="display:none"> </select>
+        <p>Web3 开拓者联盟，寻找当代的 Crypto 达芬奇</p>
     </div>
 
     <div id="lab">
-        <h4>LAB # AI音乐生成-可视化</h4>
+        <!-- <h4 sytle="font-size:18px">LAB # AI音乐生成-可视化</h4> -->
     </div>
     <h4>通行证</h4>
     <div id="nft-pass"></div>
@@ -278,14 +314,20 @@
                 container: document.querySelector('#lab'),
                 barWidth: 2,
                 barHeight: 1, // the height of the wave
-                barGap: null, // the optional spacing between bars of the wave, if not provided will be calculated in legacy format
-                waveColor: 'violet',
+                barGap: null,
+                height: 56,
+                waveColor: '#1a1be8',
                 progressColor: 'purple'
             });
             wavesurfer.load('assets/gamesettingcyberpunk257f7e65f6034bc9a2f35f4c5a92d000.mp3');
             wavesurfer.on('ready', function() {
                 wavesurfer.play();
             });
+            // wavesurfer.on('finish', function() {
+            //     wavesurfer.seekTo(0);
+            //     wavesurfer.play();
+            // });
+
         }
         const contracts = {
             "MixDAO徽章": "cfxtest:achrvxc7x4fm8dzujm07rebr3hra7ps5ce3y2zmhr9",
@@ -321,22 +363,33 @@
         async function createMyNFTs() {
             window.myNFTs = await getNFTs();
             let html = '';
+            window.myNFTs[1] = []
+            if (window.myNFTs[1].length === 0) {
+                let img = createImagePlaceHolder(300, 300);
+                html = `<div class="nft-card-mini">
+                        <div class="poster ">
+                            <img src="${img.src}" onerror="imgLoadError(this)"/> </div>
+                        <div class="count" >-</div>
+                    </div>`
+            }
             for (const nft of window.myNFTs[1]) {
                 html += createNFTCard(nft);
             };
             document.querySelector('#nfts').innerHTML = html;
 
-
             document.querySelector('#nft-pass').innerHTML = createNFTPass(window.myNFTs[0]);
-
 
         }
 
         provider.on('ready', init)
 
         function init() {
+            // document.getElementById('address').style.backgroundImage = `url(${.src})`;
+            // let img = createImagePlaceHolder(window.innerWidth, window.innerWidth);
+            // document.querySelector('#address img').src = img.src;
             document.querySelector('#login').className = ''
-            document.querySelector('#login').removeAttribute('disabled')
+            document.querySelector('#login').removeAttribute('disabled');
+            document.querySelector('#login').innerText = '打开钱包'
             getVersion();
             lab()
         }
@@ -379,6 +432,8 @@
                     html += `<option value="${a}" >${a}</option>`
                 }
                 document.querySelector('#address-select').innerHTML = html;
+
+                document.querySelector('#my-address').innerText = window.address[0];
 
                 createMyNFTs();
 
@@ -471,16 +526,19 @@
 
         function createNFTPass(list = []) {
             console.log(list)
-            let html = ''
+            let html = '';
+            if (list.length === 0) {
+                list = [{
+                    image: 'assets/nft-pass-default.png'
+                }]
+            }
             for (const nft of list) {
                 html += `<div class="nft-pass-card" onclick='openNFT(${JSON.stringify(nft)})'>
                         <div class="content">
-                            <img src="${nft.image}" onerror="imgLoadError(this)"/> </div>
-                            <div class="count" >${nft.count}</div>
+                            <img src="${nft.image}" onerror="imgLoadError(this)"/> </div>  
                     </div>
                     `
             }
-
             return html
         }
 
@@ -583,6 +641,7 @@
         };
 
         function openNFT(nft) {
+            if (!nft.name && !nft.description) window.location.href = 'https://imdodo.com/s/159568?inv=RVYI'
             let d = document.querySelector('#nft-detail .content');
             d.innerHTML = createNFTCardDetail(nft);
             d.parentElement.style.display = 'flex'
@@ -614,8 +673,9 @@
         }
 
         function createNFTCardMini(nft) {
+            // pologen
             return `<div class="nft-card-mini" onclick='openNFT(${JSON.stringify(nft)})'>
-                        <div class="poster pologen">
+                        <div class="poster ">
                             <img src="${nft.image}" onerror="imgLoadError(this)"/> </div>
                         <div class="count" >${nft.count}</div>
                     </div>
