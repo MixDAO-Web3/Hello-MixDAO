@@ -211,6 +211,16 @@
             margin-bottom: 8px;
         }
         
+        .nft-card .count {
+            font-size: 12px;
+            background: black;
+            display: flex;
+            width: 24px;
+            color: white;
+            justify-content: center;
+            align-items: center;
+        }
+        
         .nft-card .contract {
             font-size: 12px;
             text-decoration: none;
@@ -331,8 +341,8 @@
 
         }
         const contracts = {
-            "MixDAO徽章": "cfxtest:achrvxc7x4fm8dzujm07rebr3hra7ps5ce3y2zmhr9",
-            "MixDAO通行证": "cfxtest:ace2w11u4g65jajzefbx2hf1yk2nesk8fu6fa4wxzn"
+            "MixDAO徽章": "cfx:acd8xca66vh5cdd7rdfpxjkys5muj6yksabk8nfjvm",
+            "MixDAO通行证": "cfx:acd0sf2e5xyzx3as5etbu7710fzubk034pn3hfapy7"
         };
 
 
@@ -694,7 +704,7 @@
             imgurl: '',
             url: ''
         }, className = "default") {
-            return `<a ${json.url?`href="${json.url}"`:""}>
+            return typeof(json) === 'string' ? `<p class="info-name">${json}</p>` : `<a ${json.url?`href="${json.url}"`:""}>
                     ${json.imgurl?`<img class="info-imgurl" src="${json.imgurl}"/>`:""}
                     <p class="info-name">${json.name}</p>
                    </a>`
