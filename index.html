@@ -376,12 +376,15 @@
             let html = '';
             // window.myNFTs[1] = []
             if (window.myNFTs[1].length === 0) {
-                let img = createImagePlaceHolder(300, 300);
-                html = `<div class="nft-card-mini">
-                        <div class="poster ">
-                            <img src="${img.src}" onerror="imgLoadError(this)"/> </div>
-                        <div class="count" >-</div>
-                    </div>`
+                // let img = createImagePlaceHolder(300, 300);
+                // html = `<div class="nft-card-mini">
+                //         <div class="poster ">
+                //             <img src="${img.src}" onerror="imgLoadError(this)"/> </div>
+                //         <div class="count" >-</div>
+                //     </div>`
+
+                document.querySelector('#nfts').previousElementSibling.style.display = 'none';
+                document.querySelector('#nfts').style.display = 'none';
             }
             for (const nft of window.myNFTs[1]) {
                 html += createNFTCard(nft);
