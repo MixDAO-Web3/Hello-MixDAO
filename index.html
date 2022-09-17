@@ -340,6 +340,8 @@
             // });
 
         }
+
+        window.nftIds = {};
         const contracts = {
             "MixDAO徽章": "cfx:acd8xca66vh5cdd7rdfpxjkys5muj6yksabk8nfjvm",
             "MixDAO通行证": "cfx:acd0sf2e5xyzx3as5etbu7710fzubk034pn3hfapy7"
@@ -538,6 +540,8 @@
             if (contract) return `https://${provider.networkId === 1029?'':'testnet。'}confluxscan.net/address/${contract}`
         }
 
+
+
         function createNFTPass(list = []) {
             console.log(list)
             let html = '';
@@ -547,7 +551,9 @@
                 }]
             }
             for (const nft of list) {
-                html += `<div class="nft-pass-card" onclick='openNFT(${JSON.stringify(nft)})'>
+                let nftId = 'nft_' + Object.keys(window.nftIds).length;
+                window.nftIds[nftId] = nft;
+                html += `<div class="nft-pass-card" onclick="openNFT('${nftId}')">
                         <div class="content">
                             <img src="${nft.image}" onerror="imgLoadError(this)"/> </div>  
                     </div>
@@ -654,7 +660,9 @@
             return createNFTCardMini(nft)
         };
 
-        function openNFT(nft) {
+        function openNFT(nftId) {
+            nft = {...window.nftIds[nftId]
+            }
             if (!nft.name && !nft.description) window.location.href = 'https://imdodo.com/s/159568?inv=RVYI'
             let d = document.querySelector('#nft-detail .content');
             d.innerHTML = createNFTCardDetail(nft);
@@ -688,7 +696,10 @@
 
         function createNFTCardMini(nft) {
             // pologen
-            return `<div class="nft-card-mini" onclick='openNFT(${JSON.stringify(nft)})'>
+            let nftId = 'nft_' + Object.keys(window.nftIds).length;
+            window.nftIds[nftId] = nft;
+
+            return `<div class="nft-card-mini" onclick="openNFT('${nftId}')">
                         <div class="poster ">
                             <img src="${nft.image}" onerror="imgLoadError(this)"/> </div>
                         <div class="count" >${nft.count}</div>
