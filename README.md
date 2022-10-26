@@ -1,5 +1,14 @@
 # Hello-MixDAO
 
+地址公示：
+
+[MixDAO -Achievements-N2](https://confluxscan.net/token/cfx:acc7d2w1yg9sg6t45dr95zhhgxn921bz1yxsg8jr6e)
+
+[MixDAO -Achievements-N1](https://confluxscan.net/token/cfx:acd8xca66vh5cdd7rdfpxjkys5muj6yksabk8nfjvm)
+
+[MixDAO-PASS-N1](https://confluxscan.net/token/cfx:acd0sf2e5xyzx3as5etbu7710fzubk034pn3hfapy7)
+
+
 - 实验区
 - NFT通行证
 - MixDAO徽章
