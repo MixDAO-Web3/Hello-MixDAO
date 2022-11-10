@@ -285,6 +285,18 @@
             z-index: 99;
             font-weight: 800;
         }
+
+        #help{
+            position: fixed;
+            top: 32px;
+            /* z-index: 9999999; */
+            width: 32px;
+            height: 32px;
+            right: 12px;
+            background-color: #eee;
+            border-radius: 100%;
+        }
+        
     </style>
 </head>
 
@@ -319,6 +331,12 @@
         <button id="close" onclick="closeNFT()">关闭</button>
         <div class="content"></div>
     </div>
+
+
+    <a id="help" href="https://github.com/MixDAO-Web3/Hello-MixDAO">
+        <svg xmlns="http://www.w3.org/2000/svg" role="img" viewBox="0 0 24 24"><title>GitHub</title><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+    </a>
+
     <script type="text/javascript">
         function lab() {
             let wavesurfer = WaveSurfer.create({
@@ -342,9 +360,13 @@
         }
 
         window.nftIds = {};
+        // TODO 官方认证#徽章墙
         const contracts = {
-            "MixDAO徽章": "cfx:acd8xca66vh5cdd7rdfpxjkys5muj6yksabk8nfjvm",
-            "MixDAO通行证": "cfx:acd0sf2e5xyzx3as5etbu7710fzubk034pn3hfapy7"
+            "MixDAO通行证": "cfx:acd0sf2e5xyzx3as5etbu7710fzubk034pn3hfapy7",
+            "MixDAO徽章v1": "cfx:acd8xca66vh5cdd7rdfpxjkys5muj6yksabk8nfjvm",
+            "做客MixDAO_DeautoDAO":'cfx:acc7d2w1yg9sg6t45dr95zhhgxn921bz1yxsg8jr6e',
+            '徽章#开拓者-青年dao-杜雨':'cfx:accn2xa8ktptnnfwpfxkge38ptymtpsafudftk5mr8',
+            '徽章#超级个体-0001Mixtalk':'cfx:acap1mt8ymxv010f6gwx2f5xtu7cw0dtvpb12ze0fn'
         };
 
 
@@ -493,9 +515,10 @@
                 myNFTs[contract] = await fetch(`${getChainUrl()}/nft/tokens?contract=${contract}&owner=${a}&skip=0&withBrief=true&withMetadata=true&limit=12`).then(res => res.json());
                 if (myNFTs[contract].code === 0 && myNFTs[contract].data) {
                     myNFTs[contract] = Array.from(myNFTs[contract].data.list, u => {
+                        let metadata=parseNFTMetadata(u.rawData.metadata);
                         u = {
                             contract: u.contract,
-                            ...(u.rawData.metadata)
+                            ...metadata
                         }
                         return u;
                     });
@@ -518,11 +541,12 @@
 
             let nfts = [],
                 nftPass = [];
-            console.log(myNFTs)
+            console.log('myNFTs:',myNFTs)
             for (const key in myNFTs) {
                 if (myNFTs[key]) {
                     for (const name in myNFTs[key]) {
-                        if (key === contracts['MixDAO徽章']) nfts.push(myNFTs[key][name])
+                        if (key === contracts['MixDAO徽章v1']) nfts.push(myNFTs[key][name])
+                        if (key === contracts['做客MixDAO_DeautoDAO']) nfts.push(myNFTs[key][name])
                         if (key === contracts['MixDAO通行证']) nftPass.push(myNFTs[key][name])
                     }
                 }
@@ -531,6 +555,16 @@
 
             return [nftPass, nfts];
         }
+
+        // 重定向ipfs域名解析
+        function parseNFTMetadata(data){
+            // console.log(data)
+            data.image=data.image.replace(/.*\/ipfs\//ig,'https://ipfs.2read.net/ipfs/');
+            data.fileData=data.fileData.replace(/.*\/ipfs\//ig,'https://ipfs.2read.net/ipfs/');
+            // window.data=data;
+            return data;
+        }
+
 
         function getChainUrl() {
             return `https://api${provider.networkId === 1029?'':'-testnet'}.confluxscan.net`;
