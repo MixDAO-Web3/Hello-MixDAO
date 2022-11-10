@@ -2,9 +2,19 @@
 
 地址公示：
 
-[MixDAO -Achievements-N2](https://confluxscan.net/token/cfx:acc7d2w1yg9sg6t45dr95zhhgxn921bz1yxsg8jr6e)
+## MixDAO -Achievements-N2
+
+[做客MixDAO_DeautoDAO](https://confluxscan.net/token/cfx:acc7d2w1yg9sg6t45dr95zhhgxn921bz1yxsg8jr6e)
+[开拓者-青年dao-杜雨](https://confluxscan.net/token/cfx:accn2xa8ktptnnfwpfxkge38ptymtpsafudftk5mr8)       
+[超级个体-0001Mixtalk](https://confluxscan.net/token/cfx:acap1mt8ymxv010f6gwx2f5xtu7cw0dtvpb12ze0fn)      
+      
+      
+## MixDAO -Achievements-N1
 
 [MixDAO -Achievements-N1](https://confluxscan.net/token/cfx:acd8xca66vh5cdd7rdfpxjkys5muj6yksabk8nfjvm)
+
+
+## MixDAO-PASS-N1
 
 [MixDAO-PASS-N1](https://confluxscan.net/token/cfx:acd0sf2e5xyzx3as5etbu7710fzubk034pn3hfapy7)
 
